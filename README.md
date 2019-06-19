@@ -2,10 +2,13 @@ Prab Singh - 2121645<br>MG7013 - Embedded Systems<br>03 June 2019
 # Assignment 2 - Monochrome OLED display pong game
 ## USAGE INSTRUCTIONS
 1. Download and install the `Adafruit GFX` library, and the `Adafruit SSD1306` library for use with your Arduino compatible board.
-2. Download dhhhfrntrfn to get the Arduino sketch/C-programme
+2. Download [folder](https://github.com/Mr-645/Assignment-2/tree/master/Assignment%202%20-%20OLED%20Display) to get the Arduino sketch/C++ programme
 4. Navigate to the `/src` folder and run `main.cpp`.
 ## REPORT
 <img src="/Fully_built_prototype.jpg" alt="Fully built prototype">
+
+---
+
 ### Project purpose and general description
 
 **Use a display and run a game** on a microcontroller with buttons and a potentiometer for control.
@@ -28,7 +31,7 @@ Implement the famous game Pong as a single player version
 
 ### Description of design process steps
 
-The game is a modified version of a generic OLED PONG game by `https://github.com/eholk/`
+The game is a modified version of a generic OLED PONG game by `[eholk](https://github.com/eholk/)`.
 The link to eholk's code is in the appendix.
 Links to obtain the libraries required to use the OLED screen are also in the appendix.
 
@@ -158,7 +161,7 @@ The only room for improvement is using a faster microcontroller.
 An infographic for the Nano is available [here](https://i.pinimg.com/736x/c4/87/21/c487213e9081fb0050878a02304e5693.jpg), it shows pin type information and current capability too. 
 
 #### Source code of my PONG game
-The source code (main.cpp) is available [here](/Assignment%202%20-%20OLED%20display/src/main.cpp)
+The source code (main.cpp) is available [here](/Assignment-2/blob/master/Assignment 2 - OLED Display/src/main.cpp)
 
 #### Original PONG game
 The link to eholk's original is [this](https://github.com/eholk/Arduino-Pong/blob/master/pong.ino)
