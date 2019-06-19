@@ -45,7 +45,7 @@ The pong game goes left-to-right and right-to-left across the screen.
 The game has two players: the human on the right, and the CPU on the left.
 If the ball hits the wall behind a paddle, the other player earns a point.
 The score is shown in the centre-top of the screen.
-The fist to 5 points wins.
+The first to 5 points wins.
 
 #### Gameplay instructions
 Control the paddle with the potentiometer. Reset the game with the left button. Pause/play with the right button.
