@@ -141,7 +141,7 @@ I decided to incorporate a potentiometer to control the human player's paddle. I
 The two push-buttons I had were used for the reset and start/stop functionality. They are used as hardware interrupts.
 The display is a monochrome 128 x 64 OLED running the SSD1306 driver. It's interfaced using i2c.
 
-<img src="/g1967.png" alt="Schematic">
+<img src="/Nano_OLED_Schematic.png" alt="Schematic">
 
 ---
 
@@ -162,7 +162,7 @@ The only room for improvement is using a faster microcontroller.
 An infographic for the Nano is available [here](https://i.pinimg.com/736x/c4/87/21/c487213e9081fb0050878a02304e5693.jpg), it shows pin type information and current capability too. 
 
 #### Source code of my PONG game
-The source code (main.cpp) is available [here](/Assignment-2/blob/master/Assignment 2 - OLED Display/src/main.cpp)
+The source code for `main.cpp` is available [here](/Assignment-2/blob/master/Assignment 2 - OLED Display/src/main.cpp)
 
 #### Original PONG game
 The link to eholk's original is [this](https://github.com/eholk/Arduino-Pong/blob/master/pong.ino)
