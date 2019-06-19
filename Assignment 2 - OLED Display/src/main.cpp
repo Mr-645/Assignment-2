@@ -3,23 +3,24 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define UP_BUTTON 2
-#define DOWN_BUTTON 3
+#define Right_button 2
+#define Left_button 3
 #define ledPin 13 //LED builtin pin for showing when the debounce function is ignoring button presses
+#define potPin A0
 
-uint32_t debounceDelay = 50;    //Debounce time - Switch ignore time
-uint32_t lastDebounceTime = 0;  //This will store the last time the LED was updated
-bool debounceDelayDone = false; //Whether or not the debounce delay has occurred
+uint32_t debounceDelay = 150;            //Debounce time - Switch ignore time
+volatile uint32_t lastDebounceTime = 0;  //This will store the last time the LED was updated
+volatile bool debounceDelayDone = false; //Whether or not the debounce delay has occurred
 
-const unsigned long PADDLE_RATE = 33;
-const unsigned long BALL_RATE = 16;
+const unsigned long PADDLE_RATE = 1;
+const unsigned long BALL_RATE = 36;
 const uint8_t PADDLE_HEIGHT = 24;
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET 4 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define OLED_RESET 4 // Reset pin # (or -1 if sharing Arduino Reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 uint8_t ball_x = 64, ball_y = 32;
@@ -31,133 +32,85 @@ const uint8_t CPU_X = 12;
 uint8_t cpu_y = 16;
 
 const uint8_t PLAYER_X = 115;
-uint8_t player_y = 16;
+uint8_t player_y = 15;
 
-static bool up_state = false;
-static bool down_state = false;
+uint8_t CPU_player_points = 0;
+uint8_t Human_player_points = 0;
+bool start_pause_toggle = 0; //Paused if true (1)
+bool left_reset_pressed = 0;
+bool right_startPause_pressed = 0;
 
 enum States
 {
-    moving_up,
-    moving_down,
-    Idle
+    Start_screen,
+    Playing,
+    Paused,
+    End_screen
 };
-States current_state = Idle;
+States current_state = Start_screen;
 
-//Function to handle move_up functionality
-void moveUpFunc()
+void display_start_screen()
 {
-    if (debounceDelayDone == true)
-    {
-        //If debounceDelayDone is true, do the following
-        current_state = moving_up;
-        lastDebounceTime = millis(); //Reset last debounce time
-    }
-}
-
-//Function to handle move_down functionality
-void moveDownFunc()
-{
-    if (debounceDelayDone == true)
-    {
-        //If debounceDelayDone is true, do the following
-        current_state = moving_down;
-        lastDebounceTime = millis(); //Reset last debounce time
-    }
-}
-
-void setup()
-{
-    Serial.begin(9600);
-    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
-    { // Address 0x3D for 128x64
-        Serial.println(F("SSD1306 allocation failed"));
-        for (;;)
-            ; // Don't proceed, loop forever
-    }
-
-    pinMode(ledPin, OUTPUT);
-    pinMode(UP_BUTTON, INPUT_PULLUP);
-    pinMode(DOWN_BUTTON, INPUT_PULLUP);
-
-    //Run the moveUpFunc function when the pin goes low
-    attachInterrupt(digitalPinToInterrupt(UP_BUTTON), moveUpFunc, FALLING);
-
-    //Run the moveDownFunc function when the pin goes low
-    attachInterrupt(digitalPinToInterrupt(DOWN_BUTTON), moveDownFunc, FALLING);
-
+    uint8_t ball_x = 64, ball_y = 32;
+    uint8_t ball_dir_x = 1, ball_dir_y = 1;
     // Display splash screen
     display.clearDisplay();
-    display.setTextSize(1.9); // Draw 2X-scale text
+    display.setTextSize(1); // Draw 2X-scale text
     display.setTextColor(WHITE);
-    display.setCursor(10, 10);
-    display.println("Loading...");
+    display.setCursor(0, 10);
+    display.println(F("Score 5 points to win"));
+    display.println(F("Press R_btn to begin"));
     display.display();
-    delay(2000);
+    start_pause_toggle = 0;
+    CPU_player_points = 0;
+    Human_player_points = 0;
+}
 
+bool setup_game_screen(bool finished_game_screen_setup)
+{
+    finished_game_screen_setup = false;
     display.clearDisplay();
     display.drawRect(0, 0, 128, 64, WHITE);
 
-    ball_update = millis();
-    paddle_update = ball_update;
-}
-
-void loop()
-{
-    unsigned long time = millis();
-    //------------------------------------------------------------
-    // Switch case functions and main timing stuff
-    switch (current_state)
-    {
-        //State 0
-    case moving_up:
-        if (digitalRead(UP_BUTTON) == LOW)
-        {
-            up_state = HIGH;
-            current_state = moving_up;
-        }
-        else
-        {
-            up_state = LOW;
-            current_state = Idle;
-        }
-        // current_state = moving_up;
-        display.display();
-        break;
-        //State 1
-    case moving_down:
-        if (digitalRead(DOWN_BUTTON) == LOW)
-        {
-            down_state = HIGH;
-            current_state = moving_down;
-        }
-        else
-        {
-            down_state = LOW;
-            current_state = Idle;
-        }
-        display.display();
-        break;
-        //State 2
-    case Idle:
-        current_state = Idle;
-        display.display();
-        break;
-    default:
-        // statements
-        break;
-    }
-    //------------------------------------------------------------
-    /*
-    //------------------------------------------------------------
-    // Display number on screen
+    //Initialise the score display board
     display.setTextSize(1); // Draw 2X-scale text
     display.setTextColor(WHITE);
-    display.setCursor(64, 5);
-    display.println(current_state);
+    display.setCursor(50, 5);
+    display.print(CPU_player_points);
+    display.setCursor(60, 5);
+    display.print(" - ");
+    display.setCursor(80, 5);
+    display.print(Human_player_points);
     display.display();
-    //------------------------------------------------------------
-    */
+    finished_game_screen_setup = true;
+    return finished_game_screen_setup;
+}
+
+void update_score_board()
+{
+    //Update the score display board
+    display.clearDisplay();
+    display.drawRect(0, 0, 128, 64, WHITE);
+    display.setTextSize(1); // Draw 2X-scale text
+    display.setTextColor(WHITE);
+    display.setCursor(50, 5);
+    display.print(CPU_player_points);
+    display.setCursor(60, 5);
+    display.print(" - ");
+    display.setCursor(80, 5);
+    display.print(Human_player_points);
+    if(current_state == Paused){
+        display.setTextSize(2); // Draw 2X-scale text
+        display.setTextColor(WHITE);
+        display.setCursor(30, 30);
+        display.println("PAUSED");
+    }
+    display.display();
+}
+
+void run_game()
+{
+    unsigned long time = millis();
     if (time > ball_update)
     {
         uint8_t new_x = ball_x + ball_dir_x;
@@ -166,8 +119,21 @@ void loop()
         // Check if we hit the vertical walls
         if (new_x == 0 || new_x == 127)
         {
+            //Increment the score of a player depending on which wall gets hit
+            if (new_x == 0)
+            {
+                Human_player_points = Human_player_points + 1;
+            }
+
+            if (new_x == 127)
+            {
+                CPU_player_points = CPU_player_points + 1;
+            }
+
             ball_dir_x = -ball_dir_x;
             new_x += ball_dir_x + ball_dir_x;
+
+            update_score_board();
         }
 
         // Check if we hit the horizontal walls.
@@ -191,8 +157,16 @@ void loop()
             new_x += ball_dir_x + ball_dir_x;
         }
 
-        display.drawPixel(ball_x, ball_y, BLACK);
-        display.drawPixel(new_x, new_y, WHITE);
+        if ((ball_x > 48 and ball_x < 88) and (ball_y > 4 and ball_y < 12))
+        {
+            //update_score_board();
+        }
+        else
+        {
+            display.drawPixel(ball_x, ball_y, BLACK);
+            display.drawPixel(new_x, new_y, WHITE);
+        }
+
         ball_x = new_x;
         ball_y = new_y;
 
@@ -216,32 +190,49 @@ void loop()
         {
             cpu_y += 1;
         }
+
         if (cpu_y < 1)
+        {
             cpu_y = 1;
+        }
         if (cpu_y + PADDLE_HEIGHT > 63)
+        {
             cpu_y = 63 - PADDLE_HEIGHT;
+        }
         display.drawFastVLine(CPU_X, cpu_y, PADDLE_HEIGHT, WHITE);
 
         // Player paddle
         display.drawFastVLine(PLAYER_X, player_y, PADDLE_HEIGHT, BLACK);
-        if (up_state)
-        {
-            player_y -= 5;
-        }
-        if (down_state)
-        {
-            player_y += 5;
-        }
-        up_state = down_state = false;
-        if (player_y < 1)
-            player_y = 1;
-        if (player_y + PADDLE_HEIGHT > 63)
-            player_y = 63 - PADDLE_HEIGHT;
+
+        player_y = map(analogRead(potPin), 0, 926, 0, (63 - PADDLE_HEIGHT));
         display.drawFastVLine(PLAYER_X, player_y, PADDLE_HEIGHT, WHITE);
 
         display.display();
     }
+}
 
+void display_end_screen()
+{
+    // Display the end message
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setTextColor(WHITE);
+    display.setCursor(1, 10);
+
+    if (CPU_player_points == 5)
+    {
+        display.println("CPU player wins");
+    }
+    else if (Human_player_points == 5)
+    {
+        display.println("Human player wins");
+    }
+
+    display.display();
+}
+
+void switch_bounce_handler()
+{
     //------------------------------------------------------------
     // Take care of switch debouncing
     if (millis() - lastDebounceTime >= debounceDelay)
@@ -256,4 +247,126 @@ void loop()
         //display.clearDisplay();
     }
     //------------------------------------------------------------
+}
+
+//Function to handle start/pause functionality
+void ISR_start_pause()
+{
+    if (debounceDelayDone == true)
+    {
+        //If debounceDelayDone is true, do the following
+        //Toggle between the modes
+        start_pause_toggle = not start_pause_toggle;
+        right_startPause_pressed = true;
+
+        lastDebounceTime = millis(); //Reset last debounce time
+    }
+}
+
+//Function to handle ISR_reset functionality
+void ISR_reset()
+{
+    if (debounceDelayDone == true)
+    {
+        //If debounceDelayDone is true, do the following
+        left_reset_pressed = true;
+        lastDebounceTime = millis(); //Reset last debounce time
+    }
+}
+
+void setup()
+{
+    Serial.begin(9600);
+    if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
+    { // Address 0x3D for 128x64
+        Serial.println(F("SSD1306 allocation failed"));
+        for (;;)
+            ; // Don't proceed, loop forever
+    }
+
+    pinMode(ledPin, OUTPUT);
+    pinMode(potPin, INPUT);
+    pinMode(Right_button, INPUT_PULLUP);
+    pinMode(Left_button, INPUT_PULLUP);
+
+    //Run the ISR_start_pause function when the pin goes low
+    attachInterrupt(digitalPinToInterrupt(Right_button), ISR_start_pause, FALLING);
+
+    //Run the ISR_reset function when the pin goes low
+    attachInterrupt(digitalPinToInterrupt(Left_button), ISR_reset, FALLING);
+
+    display.clearDisplay();
+
+    ball_update = millis();
+    paddle_update = ball_update;
+}
+
+void loop()
+{
+    switch (current_state)
+    {
+    case Start_screen:
+        display_start_screen();
+
+        if (right_startPause_pressed)
+        {
+            bool finished_game_screen_setup;
+            if (setup_game_screen(finished_game_screen_setup)){
+                current_state = Playing;
+            }
+        }
+        break;
+    case Playing:
+        run_game();
+        if (start_pause_toggle)
+        {
+            current_state = Paused;
+        }
+        else if (not start_pause_toggle)
+        {
+            current_state = Playing;
+        }
+
+        if (left_reset_pressed == true){
+            current_state = Start_screen;
+        }
+
+        //End the game if one player gets to 5 points
+        if (CPU_player_points == 5 || Human_player_points == 5)
+        {
+            current_state = End_screen;
+        }
+        break;
+    case Paused:
+        update_score_board();
+        if (start_pause_toggle)
+        {
+            current_state = Paused;
+        }
+        else if (not start_pause_toggle)
+        {
+            setup_game_screen(NULL);
+            current_state = Playing;
+        }
+
+        if(left_reset_pressed == true){
+            current_state = Start_screen;
+        }
+
+        break;
+    case End_screen:
+        display_end_screen();
+
+        if (left_reset_pressed){
+            current_state = Start_screen;
+        }
+        break;
+    default:
+        // statements
+        break;
+    }
+
+    switch_bounce_handler();
+    right_startPause_pressed = false;
+    left_reset_pressed = false;
 }
