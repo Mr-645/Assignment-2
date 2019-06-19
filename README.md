@@ -31,7 +31,7 @@ Implement the famous game Pong as a single player version
 
 ### Description of design process steps
 
-The game is a modified version of a generic OLED PONG game by `[eholk](https://github.com/eholk/)`.
+The game is a modified version of a generic OLED PONG game by [eholk](https://github.com/eholk/).
 The link to eholk's code is in the appendix.
 Links to obtain the libraries required to use the OLED screen are also in the appendix.
 
@@ -47,7 +47,7 @@ If the ball hits the wall behind a paddle, the other player earns a point.
 The score is shown in the centre-top of the screen.
 The fist to 5 points wins.
 
-##### Gamplay instructions
+#### Gameplay instructions
 Control the paddle with the potentiometer. Reset the game with the left button. Pause/play with the right button.
 
 #### State machine operation
@@ -132,6 +132,7 @@ There are various methods for just about everything that the game needs to do.
 The states call functions to run, and actions are carried out depending on what the event or state is. Some actions might be setting variables, running other methods, or transitioning to another state.
 
 The methods and variables are well named, so the programme flow should be easy to understand.
+
 ---
 
 ### Component choice and schematic
