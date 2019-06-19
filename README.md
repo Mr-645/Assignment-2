@@ -1,4 +1,4 @@
-Prab Singh - 2121645<br>MG7013 - Embedded Systems<br>03 June 2019
+Prab Singh - 2121645<br>MG7013 - Embedded Systems<br>19 June 2019
 # Assignment 2 - Monochrome OLED display pong game
 ## USAGE INSTRUCTIONS
 1. Download and install the `Adafruit GFX` library, and the `Adafruit SSD1306` library for use with your Arduino compatible board.

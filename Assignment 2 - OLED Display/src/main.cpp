@@ -3,17 +3,17 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define Right_button 2
-#define Left_button 3
+#define Right_button 2 //Pin D2 on Nano [interrupt]
+#define Left_button 3 //Pin D3 on Nano [interrupt]
 #define ledPin 13 //LED builtin pin for showing when the debounce function is ignoring button presses
-#define potPin A0
+#define potPin A0 //Potentiometer for controlling paddle
 
 uint32_t debounceDelay = 150;            //Debounce time - Switch ignore time
 volatile uint32_t lastDebounceTime = 0;  //This will store the last time the LED was updated
 volatile bool debounceDelayDone = false; //Whether or not the debounce delay has occurred
 
-const unsigned long PADDLE_RATE = 1;
-const unsigned long BALL_RATE = 36;
+const unsigned long PADDLE_RATE = 1; //Refresh time for updating paddle position
+const unsigned long BALL_RATE = 36; //Refresh time for updating ball position
 const uint8_t PADDLE_HEIGHT = 24;
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -23,39 +23,39 @@ const uint8_t PADDLE_HEIGHT = 24;
 #define OLED_RESET 4 // Reset pin # (or -1 if sharing Arduino Reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-uint8_t ball_x = 64, ball_y = 32;
-uint8_t ball_dir_x = 1, ball_dir_y = 1;
+uint8_t ball_x = 64, ball_y = 32; //Starting position of ball
+uint8_t ball_dir_x = 1, ball_dir_y = 1; //Starting direction of ball
 unsigned long ball_update;
 
 unsigned long paddle_update;
-const uint8_t CPU_X = 12;
+const uint8_t CPU_X = 12; //Starting position of CPU player paddle
 uint8_t cpu_y = 16;
 
-const uint8_t PLAYER_X = 115;
+const uint8_t PLAYER_X = 115; //Starting position of human player paddle
 uint8_t player_y = 15;
 
 uint8_t CPU_player_points = 0;
 uint8_t Human_player_points = 0;
 bool start_pause_toggle = 0; //Paused if true (1)
-bool left_reset_pressed = 0;
-bool right_startPause_pressed = 0;
+bool left_reset_pressed = 0; //Reset button press FLAG
+bool right_startPause_pressed = 0; //Start/pause button press FLAG
 
-enum States
+enum States //These are the four states of the state machine
 {
     Start_screen,
     Playing,
     Paused,
     End_screen
 };
-States current_state = Start_screen;
+States current_state = Start_screen; //Declares current state
 
 void display_start_screen()
 {
-    uint8_t ball_x = 64, ball_y = 32;
-    uint8_t ball_dir_x = 1, ball_dir_y = 1;
+    uint8_t ball_x = 64, ball_y = 32; //Reset ball position
+    uint8_t ball_dir_x = 1, ball_dir_y = 1; //Reset ball direction
     // Display splash screen
     display.clearDisplay();
-    display.setTextSize(1); // Draw 2X-scale text
+    display.setTextSize(1);
     display.setTextColor(WHITE);
     display.setCursor(0, 10);
     display.println(F("Score 5 points to win"));
@@ -73,7 +73,7 @@ bool setup_game_screen(bool finished_game_screen_setup)
     display.drawRect(0, 0, 128, 64, WHITE);
 
     //Initialise the score display board
-    display.setTextSize(1); // Draw 2X-scale text
+    display.setTextSize(1);
     display.setTextColor(WHITE);
     display.setCursor(50, 5);
     display.print(CPU_player_points);
@@ -100,7 +100,7 @@ void update_score_board()
     display.setCursor(80, 5);
     display.print(Human_player_points);
     if(current_state == Paused){
-        display.setTextSize(2); // Draw 2X-scale text
+        display.setTextSize(2); // Write the word "PAUSED" to the screen
         display.setTextColor(WHITE);
         display.setCursor(30, 30);
         display.println("PAUSED");
@@ -113,7 +113,7 @@ void run_game()
     unsigned long time = millis();
     if (time > ball_update)
     {
-        uint8_t new_x = ball_x + ball_dir_x;
+        uint8_t new_x = ball_x + ball_dir_x; //Set the next pixel where the ball will be
         uint8_t new_y = ball_y + ball_dir_y;
 
         // Check if we hit the vertical walls
@@ -139,7 +139,7 @@ void run_game()
         // Check if we hit the horizontal walls.
         if (new_y == 0 || new_y == 63)
         {
-            ball_dir_y = -ball_dir_y;
+            ball_dir_y = -ball_dir_y; //Set the next pixel where the ball will be
             new_y += ball_dir_y + ball_dir_y;
         }
 
@@ -159,11 +159,12 @@ void run_game()
 
         if ((ball_x > 48 and ball_x < 88) and (ball_y > 4 and ball_y < 12))
         {
-            //update_score_board();
+            //update_score_board(); //Un-comment this line if you want to get rid of the phantom balls when
+                                    //the ball moves across the scoreboard and leaves its impressions behind
         }
         else
         {
-            display.drawPixel(ball_x, ball_y, BLACK);
+            display.drawPixel(ball_x, ball_y, BLACK); //Replace the old pixel where the ball was with a blank space
             display.drawPixel(new_x, new_y, WHITE);
         }
 
@@ -182,7 +183,7 @@ void run_game()
         // CPU paddle
         display.drawFastVLine(CPU_X, cpu_y, PADDLE_HEIGHT, BLACK);
         const uint8_t half_paddle = PADDLE_HEIGHT >> 1;
-        if (cpu_y + half_paddle > ball_y)
+        if (cpu_y + half_paddle > ball_y) //This handles CPU paddle movement
         {
             cpu_y -= 1;
         }
@@ -204,8 +205,8 @@ void run_game()
         // Player paddle
         display.drawFastVLine(PLAYER_X, player_y, PADDLE_HEIGHT, BLACK);
 
-        player_y = map(analogRead(potPin), 0, 926, 0, (63 - PADDLE_HEIGHT));
-        display.drawFastVLine(PLAYER_X, player_y, PADDLE_HEIGHT, WHITE);
+        player_y = map(analogRead(potPin), 0, 926, 0, (63 - PADDLE_HEIGHT)); //This handles POT position
+        display.drawFastVLine(PLAYER_X, player_y, PADDLE_HEIGHT, WHITE);     //and human paddle movement   
 
         display.display();
     }
@@ -213,8 +214,7 @@ void run_game()
 
 void display_end_screen()
 {
-    // Display the end message
-    display.clearDisplay();
+    display.clearDisplay(); // Display the end message
     display.setTextSize(2);
     display.setTextColor(WHITE);
     display.setCursor(1, 10);
@@ -231,10 +231,8 @@ void display_end_screen()
     display.display();
 }
 
-void switch_bounce_handler()
+void switch_bounce_handler() // Take care of switch debouncing
 {
-    //------------------------------------------------------------
-    // Take care of switch debouncing
     if (millis() - lastDebounceTime >= debounceDelay)
     {
         debounceDelayDone = true;
@@ -244,37 +242,29 @@ void switch_bounce_handler()
     {
         debounceDelayDone = false;
         digitalWrite(ledPin, HIGH); //Turns the LED on if the timer is still running (ignoring inputs)
-        //display.clearDisplay();
     }
-    //------------------------------------------------------------
 }
 
-//Function to handle start/pause functionality
-void ISR_start_pause()
+void ISR_start_pause() //Function to handle start/pause functionality
 {
-    if (debounceDelayDone == true)
+    if (debounceDelayDone == true) //If debounceDelayDone is true, do the following
     {
-        //If debounceDelayDone is true, do the following
-        //Toggle between the modes
-        start_pause_toggle = not start_pause_toggle;
-        right_startPause_pressed = true;
-
+        start_pause_toggle = not start_pause_toggle;//Toggle between start/pause upon button press
+        right_startPause_pressed = true; //Set start/pause FLAG
         lastDebounceTime = millis(); //Reset last debounce time
     }
 }
 
-//Function to handle ISR_reset functionality
-void ISR_reset()
+void ISR_reset() //Function to handle ISR_reset functionality
 {
-    if (debounceDelayDone == true)
+    if (debounceDelayDone == true) //If debounceDelayDone is true, do the following
     {
-        //If debounceDelayDone is true, do the following
-        left_reset_pressed = true;
+        left_reset_pressed = true; //Set reset FLAG
         lastDebounceTime = millis(); //Reset last debounce time
     }
 }
 
-void setup()
+void setup() //Initialise the OLED display, the ball, etc.
 {
     Serial.begin(9600);
     if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
@@ -301,7 +291,7 @@ void setup()
     paddle_update = ball_update;
 }
 
-void loop()
+void loop() //The state machine lies here
 {
     switch (current_state)
     {
@@ -367,6 +357,6 @@ void loop()
     }
 
     switch_bounce_handler();
-    right_startPause_pressed = false;
+    right_startPause_pressed = false; //Reset the flags
     left_reset_pressed = false;
 }
