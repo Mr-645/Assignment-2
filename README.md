@@ -42,7 +42,7 @@ When the start/pause button is pressed and the current state is "Playing". This 
 
 <img src="/printscreens from video/Paused.jpg" alt="Paused">
 
-If any player scores 5 points, this screen shows.
+If any player scores 5 points, this screen shows. (you can never beat the CPU, it's just a matter of how long you can last)
 
 <img src="/printscreens from video/End_screen.jpg" alt="End screen">
 
