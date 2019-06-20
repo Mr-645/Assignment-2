@@ -29,6 +29,19 @@ Implement the famous game Pong as a single player version
 
 ---
 
+### Results and verification
+The game starts at this screen.
+<img src="/printscreens from video/Start_screen.jpg" alt="Start screen">
+When the start/pause (on the right) button is pressed, the game switches to the "Playing" state.
+<img src="/printscreens from video/Playing.jpg" alt="Playing">
+When the start/pause button is pressed and the current state is "Playing". This screen shows.
+<img src="/printscreens from video/Paused.jpg" alt="Paused">
+If any player scores 5 points, this screen shows.
+<img src="/printscreens from video/End_screen.jpg" alt="End screen">
+Pressing the reset button (on the left) in any state other than the start screen will take you to the start screen.
+
+---
+
 ### Description of design process steps
 
 The game is a modified version of a generic OLED PONG game by [eholk](https://github.com/eholk/).
